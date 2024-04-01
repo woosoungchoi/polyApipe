@@ -119,7 +119,7 @@ get_regions <- function(db, hard_extension=20, extension=2000, unstranded_gaps=T
     db_genes <- genes(db) %>%
         mutate(gene_strand = strand) %>%
         plyranges::select(gene_id, symbol, biotype=gene_biotype, gene_strand) %>%
-        filter(!biotype %in% omit_biotypes) %>%
+        dplyr::filter(!biotype %in% omit_biotypes) %>%
         mutate(symbol_unique = uniquifyFeatureNames(gene_id, symbol))
 
     db_trans <- transcriptsBy(db) %>%
@@ -128,7 +128,7 @@ get_regions <- function(db, hard_extension=20, extension=2000, unstranded_gaps=T
                    10*(tx_biotype!="protein_coding")) %>%
         select(gene_id, tx_id, support) %>%
         inner_join_mcols(db_genes, "gene_id") %>%
-        filter(strand == gene_strand) %>% #Forbid antisense isoforms
+        dplyr::filter(strand == gene_strand) %>% #Forbid antisense isoforms
         select(tx_id, gene_id, symbol, symbol_unique, biotype, support)
 
     db_cds <- cdsBy(db) %>%
@@ -178,7 +178,7 @@ get_regions <- function(db, hard_extension=20, extension=2000, unstranded_gaps=T
         join_overlap_inner_directed(disjoinment) %>%
         just_mcols() %>%
         group_by(id) %>%
-        filter(support == min(support)) %>%
+        dplyr::filter(support == min(support)) %>%
         ungroup() %>%
         group_by(id, region, symbol, symbol_unique, gene_id, biotype) %>%
         summarize(
@@ -188,7 +188,7 @@ get_regions <- function(db, hard_extension=20, extension=2000, unstranded_gaps=T
         mutate(good=length(id)==1) %>% # n() not working for some reason
         ungroup()
 
-    good <- filter(assignment, good)
+    good <- dplyr::filter(assignment, good)
     good_ranges <- disjoinment[good$id,]
     mcols(good_ranges) <- select(good, -id, -good)
 
